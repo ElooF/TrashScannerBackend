@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1>Welcome to WasteWiz AI</h1>
+    <p>Your AI-powered guide to recycling and upcycling trash.</p>
+    <p>
+        <a class="btn btn-primary" href="{{ url_for('login') }}" role="button">Login</a>
+        <a class="btn btn-success" href="{{ url_for('register') }}" role="button">Register</a>
+    </p>
+</div>
+{% endblock %}
