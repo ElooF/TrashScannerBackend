@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Scanner - WasteWiz AI{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-lg w-50">
+        <h2 class="text-center mb-3">Upload Trash Image</h2>
+        <form action="{{ url_for('scanner') }}" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="trash_image" class="form-label">Upload an Image</label>
+                <input type="file" class="form-control" name="trash_image" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Scan</button>
+        </form>
+
+        {% if recommendation %}
+        <div class="alert alert-success mt-3">
+            <strong>Recommendation:</strong> {{ recommendation }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
