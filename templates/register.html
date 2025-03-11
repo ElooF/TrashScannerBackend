@@ -1,16 +1,44 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Register - WasteWiz AI{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
-<form method="POST">
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
+
+<div class="d-flex flex-column align-items-center">
+    <!-- Flash Messages for User Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} w-50 text-center" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename='images/logo.png') }}" 
+         alt="WasteWiz AI Logo" 
+         style="width: 250px; height: auto; object-fit: contain; margin-bottom: 20px;">
+
+    <!-- Register Card -->
+    <div class="card p-4 shadow-lg" style="width: 350px; background-color: white; border-radius: 10px;">
+        <h2 class="text-center mb-3">Register</h2>
+        
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Register</button>
+        </form>
+
+        <p class="text-center mt-3">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
     </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Register</button>
-</form>
+</div>
+
 {% endblock %}

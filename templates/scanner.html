@@ -3,8 +3,17 @@
 {% block title %}Scanner - WasteWiz AI{% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card p-4 shadow-lg w-50">
+<!-- Full-screen center alignment -->
+<div class="d-flex justify-content-center align-items-center" 
+     style="height: 100vh; flex-direction: column;">
+
+    <!-- Wider WasteWiz AI Logo -->
+    <img src="{{ url_for('static', filename='images/logo.png') }}" 
+         alt="WasteWiz AI Logo" 
+         style="width: 1050px; height: 160px; object-fit: contain; margin-bottom: 20px;">
+
+    <!-- Scanner Form -->
+    <div class="card p-4 shadow-lg" style="width: 400px; background-color: white; border-radius: 10px;">
         <h2 class="text-center mb-3">Upload Trash Image</h2>
         <form action="{{ url_for('scanner') }}" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
@@ -16,7 +25,8 @@
 
         {% if recommendation %}
         <div class="alert alert-success mt-3">
-            <strong>Recommendation:</strong> {{ recommendation }}
+            <strong>Recommendation:</strong> 
+            {{ recommendation|safe }}
         </div>
         {% endif %}
     </div>

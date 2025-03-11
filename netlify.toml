@@ -1,0 +1,19 @@
+[build]
+  command = "echo 'No build step required'"
+  functions = "netlify/functions"
+  publish = "static" # Adjust this based on where your static files are
+
+  ## Redirects for Single Page Applications (Uncomment if needed)
+  #[[redirects]]
+  #  from = "/*"
+  #  to = "/index.html"
+  #  status = 200
+
+  ## (optional) Settings for Netlify Dev
+  ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
+  [dev]
+  command = "flask run" # Change this if using a different backend command
+  port = 5000 # Default Flask port
+  publish = "static" # Ensure this matches your static folder location
+
+  ## more info on configuring this file: https://ntl.fyi/file-based-build-config
