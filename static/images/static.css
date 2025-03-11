@@ -1,0 +1,124 @@
+/* Ensure the full page height is covered */
+body {
+    background-color: #f8f9fa !important; /* Light gray */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Center login card */
+.login-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Login card styling */
+.login-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Fix footer position */
+footer {
+    background: #ffffff;
+    padding: 10px;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* ---- ADDITIONS ---- */
+
+/* Navbar Styling */
+.navbar {
+    background-color: #2db742; /* Green */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Navbar Links */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.navbar a:hover {
+    text-decoration: underline;
+}
+
+/* Logout Button */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Center the logo */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Make sure logo is responsive */
+.logo-container img {
+    width: 250px;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Login Card Centering */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Adjust Login Card */
+.auth-card {
+    width: 350px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Center Register Text */
+.auth-card p {
+    text-align: center;
+}
+
+/* Ensure navbar items are properly spaced */
+.navbar nav {
+    display: flex;
+    gap: 15px;  /* Adds space between Scanner & Logout */
+}
+
+/* Prevent duplicate green banner issue */
+.login-container {
+    margin-top: 20px;  /* Push login box down slightly */
+}
+
+/* Center the logo and login card properly */
+.login-container img {
+    display: block;
+    margin: 0 auto 15px;
+}

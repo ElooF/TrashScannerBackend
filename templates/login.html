@@ -3,8 +3,15 @@
 {% block title %}Login - WasteWiz AI{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="card p-4 shadow-lg">
+
+<div class="container text-center"> 
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename='images/logo.png') }}" 
+         alt="WasteWiz AI Logo" 
+         style="width: 250px; height: auto; object-fit: contain; margin-bottom: 20px;">
+
+    <!-- Login Card -->
+    <div class="card p-4 shadow-lg mx-auto" style="width: 350px; background-color: white; border-radius: 10px;">
         <h2 class="text-center mb-3">Login</h2>
         <form action="{{ url_for('login') }}" method="POST">
             <div class="mb-3">
@@ -20,4 +27,5 @@
         <p class="text-center mt-3">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
     </div>
 </div>
+
 {% endblock %}

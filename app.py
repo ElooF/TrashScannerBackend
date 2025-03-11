@@ -3,12 +3,15 @@ from flask_login import LoginManager, login_user, login_required, logout_user, U
 import os
 import re
 import time
+import secrets  # Added for generating a fallback secret key
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
-app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
+
+# Securely fetch or generate SECRET_KEY
+app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
 
 # File upload settings
 UPLOAD_FOLDER = 'uploads'
