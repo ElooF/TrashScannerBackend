@@ -1,57 +1,63 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 import os
+import re
+import time
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
+
+# File upload settings
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Initialize LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect unauthorized users to login
 
-# Dummy user storage
+# Dummy user storage (simulating a simple database)
 users = {
-    'test@example.com': {'password': 'password123'},
+    'wastewizai1@gmail.com': {'password': generate_password_hash('password123')}
 }
-
-# Allowed file extensions for images
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # User class for Flask-Login
 class User(UserMixin):
     def __init__(self, email):
-        self.id = email  # Use the email as the user ID
-
-    def is_authenticated(self):
-        return True  # Always return True for simplicity (customize if needed)
+        self.id = email
 
 # Load user function for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
     if user_id in users:
-        return User(user_id)  # Return a User object instead of just a dictionary
+        return User(user_id)
     return None
 
 @app.route('/')
 @login_required
 def home():
-    return redirect(url_for('scanner'))  # Redirect to scanner after login
+    return redirect(url_for('scanner'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-
-        # Check credentials
-        if email in users and users[email]['password'] == password:
-            user = User(email)  # Create User object, not a dictionary
-            login_user(user)  # Log in the user
-            return redirect(url_for('scanner'))  # Redirect to the scanner page
-        else:
-            return 'Invalid credentials, please try again.'
+        
+        # Authenticate user securely
+        if email in users and check_password_hash(users[email]['password'], password):
+            user = User(email)
+            login_user(user)
+            return redirect(url_for('scanner'))
+        return 'Invalid credentials, please try again.'
     
     return render_template('login.html')
 
@@ -60,12 +66,15 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        
+        if email in users:
+            return 'User already exists. Please log in.'
 
-        # Store user credentials in the dictionary (replace with database if needed)
-        users[email] = {'password': password}
-        user = User(email)  # Create User object
-        login_user(user)  # Log in the new user
-        return redirect(url_for('scanner'))  # Redirect to the scanner page
+        # Store hashed password
+        users[email] = {'password': generate_password_hash(password)}
+        user = User(email)
+        login_user(user)
+        return redirect(url_for('scanner'))
 
     return render_template('register.html')
 
@@ -74,12 +83,14 @@ def register():
 def scanner():
     if request.method == 'POST':
         file = request.files['trash_image']
+        
         if file and allowed_file(file.filename):
+            # Secure filename and add timestamp to avoid overwriting
             filename = secure_filename(file.filename)
-            file_path = os.path.join('uploads', filename)
+            filename = f"{int(time.time())}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
 
-            # Get recommendation based on the uploaded image file
             recommendation = get_trash_recommendation(filename)
 
             return render_template('scanner.html', recommendation=recommendation, image_url=file_path)
@@ -89,21 +100,21 @@ def scanner():
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()  # Log out the user
-    return redirect(url_for('login'))  # Redirect to login page
+    logout_user()
+    return redirect(url_for('login'))
 
 # Helper functions
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_trash_recommendation(filename):
-    """Simple rule-based trash recommendation based on file name."""
+    """Generates a waste recommendation based on file name."""
     trash_items = {
-        'plastic': "Make a nice Christmas ornament out of this plastic material!",
-        'paper': "Make use of this paper by making it into art! Here's a link to get you started: https://youtu.be/pOq1ZI0dqg4?si=DtKAOkCG7mevN4Ph",
-        'metal': "Use this metal for a DIY project.",
-        'glass': "Use this glass for a glass art!",
-        'organic': "Compost this organic material.",
+        'plastic': "Make a nice Christmas ornament out of this plastic material! Here's a link to get you started: <a href='https://youtu.be/8sbgquJgKzM?si=dRnSyHxqqeDlHDiZ' target='_blank'>Watch here</a>",
+        'paper': "Make use of this paper by making it into art! Here's a link to get you started: <a href='https://youtu.be/pOq1ZI0dqg4?si=DtKAOkCG7mevN4Ph' target='_blank'>Watch here</a>",
+        'metal': "Use this metal for a DIY project. Here's a link to get you started: <a href='https://youtu.be/-r5-7pxolPE?si=7fioJuyg4XOZehiK' target='_blank'>Watch here</a>",
+        'glass': "Use this glass for glass art! Here's a link to get you started: <a href='https://youtube.com/shorts/0bvaugnt728?si=_sI7jqGSdfud4Wri' target='_blank'>Watch here</a>",
+        'organic': "Compost this organic material. Here's a link to get you started: <a href='https://youtu.be/gjwZalZGmQA?si=ow8D78-GARMu_gjd' target='_blank'>Watch here</a>",
     }
 
     filename_lower = filename.lower()
@@ -114,7 +125,4 @@ def get_trash_recommendation(filename):
     return "Sorry, we couldn't identify the trash type. Please try again."
 
 if __name__ == '__main__':
-    if not os.path.exists('uploads'):
-        os.makedirs('uploads')  # Ensure the uploads folder exists
-
-    app.run(host='0.0.0.0', port=8000)  # Bind to all available network interfaces
+    app.run(host='0.0.0.0', port=8000)
