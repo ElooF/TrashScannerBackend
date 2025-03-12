@@ -1,9 +1,17 @@
 /* Ensure the full page height is covered */
 body {
-    background-color: #f8f9fa !important; /* Light gray */
+    background-image: url('/static/images/background.jpg'); /* Ensure the path is correct */
+    background-size: cover; /* Makes sure it covers the entire screen */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents tiling */
+    width: 100vw; /* Ensures full width */
+    height: 100vh; /* Ensures full height */
+    margin: 0;
+    padding-top: 60px; /* Push content down to avoid overlap */
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Center login card */
@@ -37,12 +45,17 @@ footer {
 
 /* Navbar Styling */
 .navbar {
-    background-color: #2db742; /* Green */
-    color: white;
+    width: 100%;
+    background-color: rgba(0, 128, 0, 0.9); /* Green with slight transparency */
     padding: 15px 20px;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 1000; /* Ensures it's on top of the background */
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Adds a shadow */
 }
 
 /* Navbar Links */
@@ -82,6 +95,7 @@ footer {
     width: 250px;
     height: auto;
     object-fit: contain;
+    background: none; /* Ensures no unwanted background */
 }
 
 /* Login Card Centering */
