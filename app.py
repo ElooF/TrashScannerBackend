@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin, current_user
 import os
 import re
@@ -8,8 +8,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta  # Added for session expiration
 
-# Initialize Flask app
-app = Flask(__name__, template_folder='templates')
+# Initialize Flask app with correct static folder settings
+app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # Securely fetch or generate SECRET_KEY
 app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
@@ -23,6 +23,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+if not os.path.exists('static/images'):
+    os.makedirs('static/images')  # Ensure static images directory exists
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -130,6 +133,12 @@ def logout():
 @app.route('/navbar')
 def navbar():
     return render_template('navbar.html')
+
+# Static File Debug Route
+@app.route('/static_test')
+def static_test():
+    """Check if static files are being served properly."""
+    return send_from_directory('static/images', 'logo.png')
 
 # Helper functions
 def allowed_file(filename):
