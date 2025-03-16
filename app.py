@@ -15,8 +15,10 @@ import os
 cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 print(f"Credential Path: {cred_path}")
 
-if cred_path is None or not os.path.exists(cred_path):
-    print("Error: Service account file not found!")
+if not os.path.exists(cred_path):
+    print("❌ ERROR: Service account file NOT found!")
+else:
+    print("✅ SUCCESS: Service account file found!")
 
 
 # Initialize Flask app with correct static folder settings
