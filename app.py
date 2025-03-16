@@ -11,15 +11,12 @@ from google.cloud import vision  # Import Google Vision API
 import io
 import random
 import os
-from google.cloud import vision
 
-cred_path = r'C:\Users\USER\Downloads\google-cloud-credentials.json'  # Update this path
+cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', 'path_to_your_default_credentials.json')
+
 if not cred_path:
-    print("Credential Path: None")
-    raise ValueError("Google Cloud credentials file not set.")
-
-if not os.path.exists(cred_path):
     raise ValueError(f"Google Cloud credentials file does not exist at {cred_path}")
+
 
 # Initialize Google Cloud Vision API client
 client = vision.ImageAnnotatorClient()
