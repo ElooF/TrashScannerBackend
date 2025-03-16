@@ -18,8 +18,14 @@
         <form action="{{ url_for('scanner') }}" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="trash_image" class="form-label">Upload an Image</label>
-                <input type="file" class="form-control" name="trash_image" required>
+                <input type="file" class="form-control" name="trash_image" id="trash_image" accept="image/*" required onchange="previewImage(event)">
             </div>
+            
+            <!-- Image Preview -->
+            <div class="text-center mb-3">
+                <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; height: auto; display: none;">
+            </div>
+
             <button type="submit" class="btn btn-primary w-100">Scan</button>
         </form>
 
@@ -28,7 +34,25 @@
             <strong>Recommendation:</strong> 
             {{ recommendation|safe }}
         </div>
+        
+        <!-- Display Uploaded Image -->
+        <div class="text-center mt-3">
+            <img src="{{ image_url }}" alt="Uploaded Image" style="max-width: 100%; height: auto; border-radius: 10px;">
+        </div>
         {% endif %}
     </div>
 </div>
+
+<!-- JavaScript for Image Preview -->
+<script>
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var output = document.getElementById('imagePreview');
+            output.src = reader.result;
+            output.style.display = 'block';
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
 {% endblock %}
