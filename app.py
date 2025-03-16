@@ -11,14 +11,18 @@ from google.cloud import vision  # Import Google Vision API
 import io
 import random
 import os
+from google.cloud import vision
 
-cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-print(f"Credential Path: {cred_path}")
+cred_path = r'C:\Users\USER\Downloads\google-cloud-credentials.json'  # Update this path
+if not cred_path:
+    print("Credential Path: None")
+    raise ValueError("Google Cloud credentials file not set.")
 
 if not os.path.exists(cred_path):
-    print("❌ ERROR: Service account file NOT found!")
-else:
-    print("✅ SUCCESS: Service account file found!")
+    raise ValueError(f"Google Cloud credentials file does not exist at {cred_path}")
+
+# Initialize Google Cloud Vision API client
+client = vision.ImageAnnotatorClient()
 
 
 # Initialize Flask app with correct static folder settings
