@@ -138,12 +138,12 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_trash_recommendation(image_path):
-    """Mock function for trash recommendation based on file type (no Google Vision)."""
+    """Function to get the trash recommendation based on detected material."""
     
-    # Process the uploaded image to identify its contents
-    processed_image = process_image(image_path)
+    # Process the uploaded image to identify its contents (this will help us detect the material)
+    processed_image, material = process_image(image_path)
     
-    # Trash recommendations based on file extensions or image processing results.
+    # Trash recommendations based on detected material
     trash_recommendations = {
         'plastic': [
             "Make a nice Christmas ornament out of this plastic material!<br><a href='https://youtu.be/8sbgquJgKzM' target='_blank'>Watch here</a>",
@@ -172,31 +172,50 @@ def get_trash_recommendation(image_path):
         ]
     }
 
-    # Return a recommendation based on the processed image (or file extension in the mock case)
-    return random.choice(trash_recommendations.get('plastic', []))
+    # Return recommendations based on the detected material
+    return random.choice(trash_recommendations.get(material, []))
+
 
 def process_image(image_path):
-    """Process the image using OpenCV to enhance detection."""
+    """Process the image using OpenCV and detect the material type."""
     # Read the image
     image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, thresh = cv2.threshold(blurred, 120, 255, cv2.THRESH_BINARY)
     
-    # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Convert to HSV for better color analysis
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    # Calculate histograms for HSV channels (Hue, Saturation, Value)
+    h_hist = cv2.calcHist([hsv_image], [0], None, [256], [0, 256])  # Hue histogram
+    s_hist = cv2.calcHist([hsv_image], [1], None, [256], [0, 256])  # Saturation histogram
+    v_hist = cv2.calcHist([hsv_image], [2], None, [256], [0, 256])  # Value histogram
 
-    for contour in contours:
-        if cv2.contourArea(contour) > 500:
-            # Draw bounding box for each detected trash item
-            x, y, w, h = cv2.boundingRect(contour)
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    
-    # Save the processed image
+    # Normalize histograms
+    cv2.normalize(h_hist, h_hist, 0, 1, cv2.NORM_MINMAX)
+    cv2.normalize(s_hist, s_hist, 0, 1, cv2.NORM_MINMAX)
+    cv2.normalize(v_hist, v_hist, 0, 1, cv2.NORM_MINMAX)
+
+    # Calculate the average color (HSV)
+    avg_hue = np.mean(hsv_image[:, :, 0])
+    avg_saturation = np.mean(hsv_image[:, :, 1])
+    avg_value = np.mean(hsv_image[:, :, 2])
+
+    # Use the material detection logic with improved color-based thresholds
+    if avg_hue < 10 or avg_hue > 170:  # Red/yellow for plastic
+        material = 'plastic'
+    elif avg_hue >= 40 and avg_hue <= 90 and avg_value > 100:  # Greenish/blue for paper
+        material = 'paper'
+    elif avg_saturation > 100 and avg_value > 120:  # Reflective surfaces for metal or glass
+        material = 'metal' if avg_hue > 90 else 'glass'
+    elif avg_value < 60:  # Darker tones for organic materials
+        material = 'organic'
+    else:
+        material = 'plastic'  # Default to plastic
+
+    # Processed image path
     processed_image_path = os.path.join('static/images', f"processed_{os.path.basename(image_path)}")
     cv2.imwrite(processed_image_path, image)
-    
-    return processed_image_path
+
+    return processed_image_path, material
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8000)
