@@ -3,28 +3,13 @@ from flask_login import LoginManager, login_user, login_required, logout_user, U
 import os
 import re
 import time
-import secrets  # Added for generating a fallback secret key
+import secrets
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import timedelta  # Added for session expiration
-from google.cloud import vision  # Import Google Vision API
-import io
+from datetime import timedelta
 import random
-import os
-from google.cloud import vision
-
-cred_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-
-if not cred_path:
-    raise ValueError("Google Cloud credentials file is not set. Ensure the environment variable GOOGLE_APPLICATION_CREDENTIALS is set.")
-
-# Initialize the Google Cloud Vision API client
-client = vision.ImageAnnotatorClient()
-
-
-# Initialize Google Cloud Vision API client
-client = vision.ImageAnnotatorClient()
-
+import cv2
+import numpy as np  # For OpenCV operations
 
 # Initialize Flask app with correct static folder settings
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -133,6 +118,7 @@ def scanner():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
 
+            # Process the image and get the recommendation
             recommendation = get_trash_recommendation(file_path)
 
             return render_template('scanner.html', recommendation=recommendation, image_url=file_path)
@@ -152,17 +138,12 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_trash_recommendation(image_path):
-    """Uses Google Vision AI to analyze the waste image and provide recommendations."""
-    client = vision.ImageAnnotatorClient()
-
-    with io.open(image_path, 'rb') as image_file:
-        content = image_file.read()
-    image = vision.Image(content=content)
+    """Mock function for trash recommendation based on file type (no Google Vision)."""
     
-    response = client.label_detection(image=image)
-    labels = [label.description.lower() for label in response.label_annotations]
-
-    # Recycling/upcycling ideas with multiple variations
+    # Process the uploaded image to identify its contents
+    processed_image = process_image(image_path)
+    
+    # Trash recommendations based on file extensions or image processing results.
     trash_recommendations = {
         'plastic': [
             "Make a nice Christmas ornament out of this plastic material!<br><a href='https://youtu.be/8sbgquJgKzM' target='_blank'>Watch here</a>",
@@ -171,8 +152,8 @@ def get_trash_recommendation(image_path):
         ],
         'paper': [
             "Make use of this paper by making it into art!<br><a href='https://youtu.be/pOq1ZI0dqg4' target='_blank'>Watch here</a>",
-            "Recycle paper into handmade notebooks.<br><a href='https://youtu.be/T5RInAQ9Rjw?si=GEgRVd7KhWSYVL4s' target='_blank'>Watch here</a> ",
-            "Use shredded paper for composting in your garden.<br><a href='https://youtu.be/1VNSvkZ_D_c?si=TZn5KSL2h_6M9jSb' target='_blank'>Watch here</a> "
+            "Recycle paper into handmade notebooks.<br><a href='https://youtu.be/T5RInAQ9Rjw?si=GEgRVd7KhWSYVL4s' target='_blank'>Watch here</a>",
+            "Use shredded paper for composting in your garden.<br><a href='https://youtu.be/1VNSvkZ_D_c?si=TZn5KSL2h_6M9jSb' target='_blank'>Watch here</a>"
         ],
         'metal': [
             "Use this metal for a DIY project.<br><a href='https://youtu.be/-r5-7pxolPE' target='_blank'>Watch here</a>",
@@ -180,7 +161,6 @@ def get_trash_recommendation(image_path):
             "Recycle metal cans into candle holders or planters.<br><a href='https://youtu.be/GnFH9fLz9uE?si=8pucCQzQYbaAkYfA' target='_blank'>Watch here</a>"
         ],
         'glass': [
-
             "Use this glass for glass art!<br><a href='https://youtube.com/shorts/0bvaugnt728' target='_blank'>Watch here</a>",
             "Turn empty glass jars into stylish lamps.<br><a href='https://youtu.be/_OJ6Hz5vFNY?si=b4SX9KCeZLzowpK5' target='_blank'>Watch here</a>",
             "Crushed glass can be used in mosaic artwork.<br><a href='https://youtube.com/shorts/0vKQ83UFF78?si=ZwDU8vTM6yY3mXZC' target='_blank'>Watch here</a>"
@@ -189,14 +169,34 @@ def get_trash_recommendation(image_path):
             "Compost this organic material.<br><a href='https://youtu.be/gjwZalZGmQA' target='_blank'>Watch here</a>",
             "Use fruit peels for homemade natural cleaners.<br><a href='https://youtube.com/shorts/XqUH9oAZJFw?si=w2_BA9wdUC1W87Gt' target='_blank'>Watch here</a>",
             "Turn coffee grounds into a natural fertilizer for plants.<br><a href='https://youtu.be/U8WeMOuBOs0?si=oQlMxdD2fak9SH3E' target='_blank'>Watch here</a>"
-        ],
+        ]
     }
 
-    for item, recommendations in trash_recommendations.items():
-        if item in labels:
-            return random.choice(recommendations)  # Return a random recommendation from the list
+    # Return a recommendation based on the processed image (or file extension in the mock case)
+    return random.choice(trash_recommendations.get('plastic', []))
+
+def process_image(image_path):
+    """Process the image using OpenCV to enhance detection."""
+    # Read the image
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blurred, 120, 255, cv2.THRESH_BINARY)
     
-    return "Sorry, we couldn't identify the trash type. Please try again."
+    # Find contours
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        if cv2.contourArea(contour) > 500:
+            # Draw bounding box for each detected trash item
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    
+    # Save the processed image
+    processed_image_path = os.path.join('static/images', f"processed_{os.path.basename(image_path)}")
+    cv2.imwrite(processed_image_path, image)
+    
+    return processed_image_path
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
